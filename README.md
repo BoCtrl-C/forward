@@ -13,6 +13,15 @@ Alternatively, clone the library inside your project root:
 git clone https://github.com/BoCtrl-C/forward.git
 ```
 
+Create a new conda environment that meets all requirements:
+```
+conda env create -f forward/environment.yml
+```
+Activate the created environment with:
+```
+conda activate 4ward
+```
+
 The main 4Ward class can be imported through:
 ```python
 from forward.models import ForWard
