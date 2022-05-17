@@ -9,7 +9,7 @@ setup(
     author_email='tommaso.boccato@uniroma2.it',
     packages=find_packages(),
     install_requires=[
-        'networkx'
+        'networkx',
         'torch'
     ]
 )
