@@ -4,22 +4,9 @@ With 4Ward, directed acyclic graphs (DAGs) characterized by complex topologies c
 
 ## Get Started
 
-Add 4Ward to your Git repository typing:
+Install 4Ward by typing:
 ```
-git submodule add https://github.com/BoCtrl-C/forward.git
-```
-Alternatively, clone the library inside your project root:
-```
-git clone https://github.com/BoCtrl-C/forward.git
-```
-
-Create a new conda environment that meets all requirements:
-```
-conda env create -f forward/environment.yml
-```
-Activate the created environment with:
-```
-conda activate 4ward
+pip install git+https://github.com/BoCtrl-C/forward.git
 ```
 
 The main 4Ward class can be imported through:
