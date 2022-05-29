@@ -17,6 +17,8 @@ class ForWard(Module):
         dag,
         bias=True,
         dropout=0.,
+        stand_alone=False, # when deployed as a stand-alone module, this flag
+                          # disables the last layer's nonlinearities
         seed=1
     ):
         super().__init__()
@@ -80,6 +82,7 @@ class ForWard(Module):
         self.weights = weights
         self.masks = masks
         self.dropout = Dropout(p=dropout)
+        self.stand_alone = stand_alone
     
     def forward(self, x):
         if x.shape[1] != self.in_features:
@@ -96,20 +99,25 @@ class ForWard(Module):
         activations[:,self.sources] = x
 
         # forward
-        for layer, preds, W, M in zip(
+        for i, (layer, preds, W, M) in enumerate(zip(
             self.L[1:],
             self.layer_preds,
             self.weights,
             self.masks
-        ):
-            activations[:,layer] = F.relu(torch.mm(
+        )):
+            out = torch.mm(
                 torch.cat([
                     self.dropout(activations[:,preds]),
                     torch.ones(x.shape[0], 1, device=x.device) if self.bias
                         else torch.ones(x.shape[0], 0, device=x.device)
                 ], dim=1),
                 M*W
-            ))
+            )
+
+            if not self.stand_alone or i + 2 < len(self.L):
+                out = F.relu(out)
+
+            activations[:,layer] = out
         
         out = activations[:,self.sinks]
 
