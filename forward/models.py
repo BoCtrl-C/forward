@@ -50,7 +50,7 @@ def kaiming_uniform_(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu'):
     if 0 in tensor.shape:
         warnings.warn("Initializing zero-element tensors is a no-op")
         return tensor
-    fan = _calculate_correct_fan(tensor, mode)
+    fan = _calculate_correct_fan(tensor, mode) - 1
     #print('tensor:', tensor.shape)
     #print('fan:', fan)
     gain = calculate_gain(nonlinearity, a)
@@ -122,7 +122,11 @@ class ForWard(Module):
             layer_preds.append(preds)
             weights.append(W)
             masks.append(M)
-        
+
+            #print(M)
+            #print(W)
+            #print()
+
         self.in_features = len(sources)
         self.out_features = len(sinks)
         self.dag = dag
