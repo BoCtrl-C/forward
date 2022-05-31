@@ -8,6 +8,7 @@ from torch.nn import Dropout, Module, Parameter
 #from torch.nn.init import kaiming_uniform_
 
 
+#FIXME: fix initialization when biases are disabled
 import warnings
 from torch.nn.init import _calculate_correct_fan, calculate_gain
 def kaiming_uniform_(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu'):
@@ -37,7 +38,6 @@ def kaiming_uniform_(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu'):
         >>> w = torch.empty(3, 5)
         >>> nn.init.kaiming_uniform_(w, mode='fan_in', nonlinearity='relu')
     """
-    mode='fan_out'#TODO: remove
     if torch.overrides.has_torch_function_variadic(tensor):
         return torch.overrides.handle_torch_function(
             kaiming_uniform_,
@@ -68,6 +68,8 @@ class ForWard(Module):
         self,
         dag,
         bias=True,
+        activation=F.relu,
+        initialization=lambda w: kaiming_uniform_(w, a=math.sqrt(5)),
         dropout=0.,
         stand_alone=False, # when deployed as a stand-alone module, this flag
                            # disables the last layer's nonlinearities
@@ -115,7 +117,7 @@ class ForWard(Module):
             # initialize weights
             for j in range(M.shape[1]):
                 w = torch.zeros(M[:,j].sum().int(), 1)
-                kaiming_uniform_(w, a=math.sqrt(5))
+                initialization(w.T)
                 W.data[M[:,j].bool(),j] = w.squeeze()
             self.register_parameter('W' + str(i + 1), W)
 
@@ -137,6 +139,7 @@ class ForWard(Module):
         self.layer_preds = layer_preds
         self.weights = weights
         self.masks = masks
+        self.activation = activation
         self.dropout = Dropout(p=dropout)
         self.stand_alone = stand_alone
     
@@ -171,7 +174,7 @@ class ForWard(Module):
             )
 
             if not self.stand_alone or i + 2 < len(self.L):
-                out = F.relu(out)
+                out = self.activation(out)
 
             activations[:,layer] = out
         
