@@ -58,7 +58,8 @@ def push_sources(G, L):
     return L
 
 def to_dag(G, seed=0):
-    """
+    """Converts an undirected graph, G, into a DAG. The function relies on a
+    randomly sampled topological ordering.
     """
 
     node_names = list(G.nodes)

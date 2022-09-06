@@ -9,7 +9,9 @@ from torch.nn.init import kaiming_uniform_, uniform_
 
 
 class ForWard(Module):
-    """TODO: add documentation
+    """PyTorch-compatible Module that allows the generation of feedforward
+    neural networks from arbitrary DAGs. The input DAG is required to be a
+    NetworkX DiGraph with integers as node IDs.
     """
     
     def __init__(
@@ -77,10 +79,6 @@ class ForWard(Module):
             self.register_parameter('M' + str(i + 1), M)
             self.register_parameter('W' + str(i + 1), W)
 
-            # TODO: remove
-            print(M)
-            print(W)
-
             layer_preds.append(preds)
             weights.append(W)
             masks.append(M)
@@ -110,7 +108,7 @@ class ForWard(Module):
             x.shape[0],
             self.dag.number_of_nodes(),
             device=x.device
-        ) # NOTE: space complexity number of nodes FIXME:
+        ) # NOTE: the space complexity is O(N)
         activations[:,self.sources] = x
 
         # forward
