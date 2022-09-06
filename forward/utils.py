@@ -58,7 +58,7 @@ def push_sources(G, L):
     return L
 
 def to_dag(G, seed=0):
-    """TODO: add documentation
+    """
     """
 
     node_names = list(G.nodes)
