@@ -5,7 +5,59 @@ import math
 import torch
 import torch.nn.functional as F
 from torch.nn import Dropout, Module, Parameter
-from torch.nn.init import kaiming_uniform_
+#from torch.nn.init import kaiming_uniform_
+
+
+#FIXME: fix initialization when biases are disabled
+import warnings
+from torch.nn.init import _calculate_correct_fan, calculate_gain
+def kaiming_uniform_(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu'):
+    r"""Fills the input `Tensor` with values according to the method
+    described in `Delving deep into rectifiers: Surpassing human-level
+    performance on ImageNet classification` - He, K. et al. (2015), using a
+    uniform distribution. The resulting tensor will have values sampled from
+    :math:`\mathcal{U}(-\text{bound}, \text{bound})` where
+
+    .. math::
+        \text{bound} = \text{gain} \times \sqrt{\frac{3}{\text{fan\_mode}}}
+
+    Also known as He initialization.
+
+    Args:
+        tensor: an n-dimensional `torch.Tensor`
+        a: the negative slope of the rectifier used after this layer (only
+            used with ``'leaky_relu'``)
+        mode: either ``'fan_in'`` (default) or ``'fan_out'``. Choosing ``'fan_in'``
+            preserves the magnitude of the variance of the weights in the
+            forward pass. Choosing ``'fan_out'`` preserves the magnitudes in the
+            backwards pass.
+        nonlinearity: the non-linear function (`nn.functional` name),
+            recommended to use only with ``'relu'`` or ``'leaky_relu'`` (default).
+
+    Examples:
+        >>> w = torch.empty(3, 5)
+        >>> nn.init.kaiming_uniform_(w, mode='fan_in', nonlinearity='relu')
+    """
+    if torch.overrides.has_torch_function_variadic(tensor):
+        return torch.overrides.handle_torch_function(
+            kaiming_uniform_,
+            (tensor,),
+            tensor=tensor,
+            a=a,
+            mode=mode,
+            nonlinearity=nonlinearity)
+
+    if 0 in tensor.shape:
+        warnings.warn("Initializing zero-element tensors is a no-op")
+        return tensor
+    fan = _calculate_correct_fan(tensor, mode) - 1
+    #print('tensor:', tensor.shape)
+    #print('fan:', fan)
+    gain = calculate_gain(nonlinearity, a)
+    std = gain / math.sqrt(fan)
+    bound = math.sqrt(3.0) * std  # Calculate uniform bounds from standard deviation
+    with torch.no_grad():
+        return tensor.uniform_(-bound, bound)
 
 
 class ForWard(Module):
@@ -16,9 +68,11 @@ class ForWard(Module):
         self,
         dag,
         bias=True,
+        activation=F.relu,
+        initialization=lambda w: kaiming_uniform_(w, a=math.sqrt(5)),
         dropout=0.,
         stand_alone=False, # when deployed as a stand-alone module, this flag
-                          # disables the last layer's nonlinearities
+                           # disables the last layer's nonlinearities
         seed=1
     ):
         super().__init__()
@@ -63,14 +117,18 @@ class ForWard(Module):
             # initialize weights
             for j in range(M.shape[1]):
                 w = torch.zeros(M[:,j].sum().int(), 1)
-                kaiming_uniform_(w, a=math.sqrt(5))
+                initialization(w.T)
                 W.data[M[:,j].bool(),j] = w.squeeze()
             self.register_parameter('W' + str(i + 1), W)
 
             layer_preds.append(preds)
             weights.append(W)
             masks.append(M)
-        
+
+            #print(M)
+            #print(W)
+            #print()
+
         self.in_features = len(sources)
         self.out_features = len(sinks)
         self.dag = dag
@@ -81,6 +139,7 @@ class ForWard(Module):
         self.layer_preds = layer_preds
         self.weights = weights
         self.masks = masks
+        self.activation = activation
         self.dropout = Dropout(p=dropout)
         self.stand_alone = stand_alone
     
@@ -115,7 +174,7 @@ class ForWard(Module):
             )
 
             if not self.stand_alone or i + 2 < len(self.L):
-                out = F.relu(out)
+                out = self.activation(out)
 
             activations[:,layer] = out
         
