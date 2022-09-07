@@ -32,3 +32,18 @@ model = Sequential(
 ## Examples
 
 A runnable Jupyter Notebook that makes use of 4Ward to classify MNIST images can be found inside the `examples` directory.
+
+## Citation
+
+```
+@misc{https://doi.org/10.48550/arxiv.2209.02037,
+  doi = {10.48550/ARXIV.2209.02037},
+  url = {https://arxiv.org/abs/2209.02037},
+  author = {Boccato, Tommaso and Ferrante, Matteo and Duggento, Andrea and Toschi, Nicola},
+  keywords = {Neural and Evolutionary Computing (cs.NE), Disordered Systems and Neural Networks (cond-mat.dis-nn), FOS: Computer and information sciences, FOS: Computer and information sciences, FOS: Physical sciences, FOS: Physical sciences},
+  title = {4Ward: a Relayering Strategy for Efficient Training of Arbitrarily Complex Directed Acyclic Graphs},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution Non Commercial Share Alike 4.0 International}
+}
+```
