@@ -1,6 +1,6 @@
 # 4Ward - Make your Graph a Feedforward Neural Network
 
-With 4Ward, directed acyclic graphs (DAGs) characterized by complex topologies can be easily transformed into feedforward neural networks deployable as PyTorch Modules.
+With *[4Ward](https://arxiv.org/abs/2209.02037)*, directed acyclic graphs (DAGs) characterized by complex topologies can be easily transformed into feedforward neural networks deployable as PyTorch Modules.
 
 ## Get Started
 
