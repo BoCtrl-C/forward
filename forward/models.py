@@ -135,3 +135,46 @@ class ForWard(Module):
         out = activations[:,self.sinks]
 
         return out
+
+    def _forward(self, x):
+        """Use only if dropout has to ignore source activations.
+        """
+        
+        if x.shape[1] != self.in_features:
+            raise RuntimeError(
+                'the model expects {:d} input features'.format(self.in_features)
+            )
+               
+        # initialize activations
+        activations = torch.zeros(
+            x.shape[0],
+            self.dag.number_of_nodes(),
+            device=x.device
+        ) # NOTE: the space complexity is O(N)
+        activations[:,self.sources] = x
+
+        # forward
+        for i, (layer, preds, W, M) in enumerate(zip(
+            self.L[1:],
+            self.layer_preds,
+            self.weights,
+            self.masks
+        )):
+            out = torch.mm(
+                torch.cat([
+                    activations[:,preds] if i == 0
+                        else self.dropout(activations[:,preds]),
+                    torch.ones(x.shape[0], 1, device=x.device) if self.bias
+                        else torch.ones(x.shape[0], 0, device=x.device)
+                ], dim=1),
+                M*W
+            )
+
+            if not self.stand_alone or i + 2 < len(self.L):
+                out = self.activation(out)
+
+            activations[:,layer] = out
+        
+        out = activations[:,self.sinks]
+
+        return out

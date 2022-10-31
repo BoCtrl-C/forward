@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='forward',
-    version='1.0',
+    version='1.0.1',
     url='https://github.com/BoCtrl-C/forward',
     author='Tommaso Boccato',
     author_email='tommaso.boccato@uniroma2.it',
